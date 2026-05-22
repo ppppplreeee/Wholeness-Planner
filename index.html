@@ -68,8 +68,7 @@
   .tag.polarity-maintenance{background:#F0EEE8;color:#7A6A3A;border-color:rgba(122,106,58,0.2);}
   .tag.polarity-aliveness{background:#F0E8EE;color:#7A3A6A;border-color:rgba(122,58,106,0.2);}
 
-  .task-actions{position:absolute;top:8px;right:8px;display:flex;gap:4px;opacity:0;transition:opacity 0.15s;}
-  .task-card:hover .task-actions{opacity:1;}
+  .task-actions{position:absolute;top:8px;right:8px;display:flex;gap:4px;}
   .task-btn{width:22px;height:22px;border:1px solid var(--border);background:white;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:var(--ink3);transition:all 0.15s;}
   .task-btn:hover{background:var(--bg2);color:var(--ink);}
   .task-btn.complete-btn:hover{background:#E8F0E8;color:#3A6A3A;border-color:#3A6A3A;}
@@ -324,27 +323,27 @@
       <div class="caption-panel empty" id="domainCaption">Select a domain to see its description.</div>
     </div>
     <div class="field">
-      <label>Mode</label>
+      <label>Mode — select one or both</label>
       <div class="toggle-group">
-        <button class="toggle-btn" data-group="mode" data-value="Receptive" onclick="selectToggle(this);showCaption('mode','Receptive')">Receptive</button>
-        <button class="toggle-btn" data-group="mode" data-value="Expressive" onclick="selectToggle(this);showCaption('mode','Expressive')">Expressive</button>
+        <button class="toggle-btn multi" data-group="mode" data-value="Receptive" onclick="toggleMulti(this);showCaption('mode','Receptive')">Receptive</button>
+        <button class="toggle-btn multi" data-group="mode" data-value="Expressive" onclick="toggleMulti(this);showCaption('mode','Expressive')">Expressive</button>
       </div>
       <div class="caption-panel empty" id="modeCaption">Select a mode to see its description.</div>
     </div>
     <div class="field">
-      <label>Temporal orientation</label>
+      <label>Temporal orientation — select any</label>
       <div class="toggle-group">
-        <button class="toggle-btn" data-group="temporal" data-value="Past" onclick="selectToggle(this);showCaption('temporal','Past')">Past</button>
-        <button class="toggle-btn" data-group="temporal" data-value="Present" onclick="selectToggle(this);showCaption('temporal','Present')">Present</button>
-        <button class="toggle-btn" data-group="temporal" data-value="Future" onclick="selectToggle(this);showCaption('temporal','Future')">Future</button>
+        <button class="toggle-btn multi" data-group="temporal" data-value="Past" onclick="toggleMulti(this);showCaption('temporal','Past')">Past</button>
+        <button class="toggle-btn multi" data-group="temporal" data-value="Present" onclick="toggleMulti(this);showCaption('temporal','Present')">Present</button>
+        <button class="toggle-btn multi" data-group="temporal" data-value="Future" onclick="toggleMulti(this);showCaption('temporal','Future')">Future</button>
       </div>
       <div class="caption-panel empty" id="temporalCaption">Select a temporal orientation to see its description.</div>
     </div>
     <div class="field">
-      <label>Polarity</label>
+      <label>Polarity — select one or both</label>
       <div class="toggle-group">
-        <button class="toggle-btn" data-group="polarity" data-value="Maintenance" onclick="selectToggle(this);showCaption('polarity','Maintenance')">Maintenance</button>
-        <button class="toggle-btn" data-group="polarity" data-value="Aliveness" onclick="selectToggle(this);showCaption('polarity','Aliveness')">Aliveness</button>
+        <button class="toggle-btn multi" data-group="polarity" data-value="Maintenance" onclick="toggleMulti(this);showCaption('polarity','Maintenance')">Maintenance</button>
+        <button class="toggle-btn multi" data-group="polarity" data-value="Aliveness" onclick="toggleMulti(this);showCaption('polarity','Aliveness')">Aliveness</button>
       </div>
       <div class="caption-panel empty" id="polarityCaption">Select a polarity to see its description.</div>
     </div>
@@ -404,18 +403,18 @@
 // ─── DATA ────────────────────────────────────────────────────────────────────
 
 const DOMAINS = [
+  {id:'physical',    label:'Physical',    sub:'Body, energy, environment',  color:'#7A6B4A',
+   caption:'Your relationship with your body, physical energy, sensory experience, movement, and the spaces you inhabit. Exercise, craft, cooking, walking, sensory pleasure, and hands-on making belong here.'},
+  {id:'practical',   label:'Practical',   sub:'Reality & stewardship',      color:'#5A7A5A',
+   caption:'Your relationship with managing, organising, and maintaining the structures of your life: admin, finances, household, logistics. The work of keeping things functioning and well-tended.'},
+  {id:'relational',  label:'Relational',  sub:'Others, intimacy, community',color:'#7A4A5A',
+   caption:'Your relationship with other people: friends, intimates, community. Attachment, care, conversation, conflict, presence with and for others.'},
   {id:'emotional',   label:'Emotional',   sub:'Feeling life',               color:'#8B5E6A',
    caption:'Your relationship with your feeling life. Attending to what moves you, grieves you, delights you, or sits unresolved. Use this domain when the primary focus is on an inner emotional state rather than a body sensation (Physical) or a relational dynamic (Relational).'},
   {id:'intellectual',label:'Intellectual',sub:'Understanding & learning',   color:'#4A6B7A',
    caption:'Your relationship with ideas, understanding, and knowledge. Thinking, learning, making sense, questioning, being curious. Best for activities where the mind is the primary instrument.'},
   {id:'spiritual',   label:'Spiritual',   sub:'Meaning, depth, mystery',    color:'#6B5E8B',
    caption:'Your relationship with meaning, values, transcendence, and depth. What orients you. What feels sacred, significant, or numinous. Tarot, dream work, contemplative practice, and questions of purpose belong here.'},
-  {id:'practical',   label:'Practical',   sub:'Reality & stewardship',      color:'#5A7A5A',
-   caption:'Your relationship with managing, organising, and maintaining the structures of your life: admin, finances, household, logistics. The work of keeping things functioning and well-tended.'},
-  {id:'physical',    label:'Physical',    sub:'Body, energy, environment',  color:'#7A6B4A',
-   caption:'Your relationship with your body, physical energy, sensory experience, movement, and the spaces you inhabit. Exercise, craft, cooking, walking, sensory pleasure, and hands-on making belong here.'},
-  {id:'relational',  label:'Relational',  sub:'Others, intimacy, community',color:'#7A4A5A',
-   caption:'Your relationship with other people: friends, intimates, community. Attachment, care, conversation, conflict, presence with and for others.'},
 ];
 
 const CAPTIONS = {
@@ -603,6 +602,9 @@ function renderDomains(){
 function taskCardHTML(task){
   const ns=(task.needs||[]).slice(0,3);
   const timeBadge=(task.timeStart)?`<div class="task-time-badge">${task.timeStart}${task.timeEnd?' – '+task.timeEnd:''}</div>`:'';
+  const modes=task.modes||(task.mode?[task.mode]:[]);
+  const temporals=task.temporals||(task.temporal?[task.temporal]:[]);
+  const polarities=task.polarities||(task.polarity?[task.polarity]:[]);
   return`<div class="task-card" id="task-${task.id}">
     <div class="task-actions">
       <button class="task-btn complete-btn" title="Complete" onclick="completeTask('${task.id}')">✓</button>
@@ -612,9 +614,9 @@ function taskCardHTML(task){
     ${timeBadge}
     <div class="task-title">${task.title}</div>
     <div class="task-tags">
-      ${task.mode?`<span class="tag mode-${task.mode.toLowerCase()}">${task.mode}</span>`:''}
-      ${task.temporal?`<span class="tag temporal-${task.temporal.toLowerCase()}">${task.temporal}</span>`:''}
-      ${task.polarity?`<span class="tag polarity-${task.polarity.toLowerCase()}">${task.polarity}</span>`:''}
+      ${modes.map(m=>`<span class="tag mode-${m.toLowerCase()}">${m}</span>`).join('')}
+      ${temporals.map(t=>`<span class="tag temporal-${t.toLowerCase()}">${t}</span>`).join('')}
+      ${polarities.map(p=>`<span class="tag polarity-${p.toLowerCase()}">${p}</span>`).join('')}
       ${ns.map(n=>`<span class="tag">${n}</span>`).join('')}
       ${task.needs&&task.needs.length>3?`<span class="tag">+${task.needs.length-3}</span>`:''}
     </div>
@@ -623,10 +625,13 @@ function taskCardHTML(task){
 
 function bucketItemHTML(task){
   const ns=(task.needs||[]).slice(0,4);
+  const modes=task.modes||(task.mode?[task.mode]:[]);
+  const temporals=task.temporals||(task.temporal?[task.temporal]:[]);
+  const polarities=task.polarities||(task.polarity?[task.polarity]:[]);
   const tagsHTML=[
-    task.mode?`<span class="tag mode-${task.mode.toLowerCase()}">${task.mode}</span>`:'',
-    task.temporal?`<span class="tag temporal-${task.temporal.toLowerCase()}">${task.temporal}</span>`:'',
-    task.polarity?`<span class="tag polarity-${task.polarity.toLowerCase()}">${task.polarity}</span>`:'',
+    ...modes.map(m=>`<span class="tag mode-${m.toLowerCase()}">${m}</span>`),
+    ...temporals.map(t=>`<span class="tag temporal-${t.toLowerCase()}">${t}</span>`),
+    ...polarities.map(p=>`<span class="tag polarity-${p.toLowerCase()}">${p}</span>`),
     ...ns.map(n=>`<span class="tag">${n}</span>`),
     task.needs&&task.needs.length>4?`<span class="tag">+${task.needs.length-4}</span>`:'',
   ].filter(Boolean).join('');
@@ -711,9 +716,9 @@ function spinPrompt(){
 function usePrompt(){
   if(!currentPrompt)return;
   openNewTask(currentPrompt.domain,'today');
-  selectToggleByValue('mode',currentPrompt.mode);showCaption('mode',currentPrompt.mode);
-  selectToggleByValue('temporal',currentPrompt.temporal);showCaption('temporal',currentPrompt.temporal);
-  selectToggleByValue('polarity',currentPrompt.polarity);showCaption('polarity',currentPrompt.polarity);
+  selectMultiValues('mode',[currentPrompt.mode]);showCaption('mode',currentPrompt.mode);
+  selectMultiValues('temporal',[currentPrompt.temporal]);showCaption('temporal',currentPrompt.temporal);
+  selectMultiValues('polarity',[currentPrompt.polarity]);showCaption('polarity',currentPrompt.polarity);
 }
 
 // ─── INSIGHTS ────────────────────────────────────────────────────────────────
@@ -790,9 +795,9 @@ function renderHistory(){
             </div>
             <div class="history-item-tags">
               ${domain?`<span class="tag" style="background:${domain.color}18;color:${domain.color};border-color:${domain.color}33">${domain.label}</span>`:''}
-              ${t.mode?`<span class="tag mode-${t.mode.toLowerCase()}">${t.mode}</span>`:''}
-              ${t.temporal?`<span class="tag temporal-${t.temporal.toLowerCase()}">${t.temporal}</span>`:''}
-              ${t.polarity?`<span class="tag polarity-${t.polarity.toLowerCase()}">${t.polarity}</span>`:''}
+              ${(t.modes||(t.mode?[t.mode]:[])).map(m=>`<span class="tag mode-${m.toLowerCase()}">${m}</span>`).join('')}
+              ${(t.temporals||(t.temporal?[t.temporal]:[])).map(tp=>`<span class="tag temporal-${tp.toLowerCase()}">${tp}</span>`).join('')}
+              ${(t.polarities||(t.polarity?[t.polarity]:[])).map(p=>`<span class="tag polarity-${p.toLowerCase()}">${p}</span>`).join('')}
               ${ns.map(n=>`<span class="tag">${n}</span>`).join('')}
               ${t.needs&&t.needs.length>4?`<span class="tag">+${t.needs.length-4}</span>`:''}
             </div>
@@ -809,9 +814,12 @@ function completeTask(id){
   t.placement='done';t.completedAt=new Date().toISOString();
   const v=state.votes;
   v.domains[t.domain]=(v.domains[t.domain]||0)+1;
-  if(t.mode)     v.modes[`${t.domain}:${t.mode}`]         =(v.modes[`${t.domain}:${t.mode}`]||0)+1;
-  if(t.temporal) v.temporals[`${t.domain}:${t.temporal}`] =(v.temporals[`${t.domain}:${t.temporal}`]||0)+1;
-  if(t.polarity) v.polarities[`${t.domain}:${t.polarity}`]=(v.polarities[`${t.domain}:${t.polarity}`]||0)+1;
+  const modes=t.modes||(t.mode?[t.mode]:[]);
+  const temporals=t.temporals||(t.temporal?[t.temporal]:[]);
+  const polarities=t.polarities||(t.polarity?[t.polarity]:[]);
+  modes.forEach(m=>{v.modes[`${t.domain}:${m}`]=(v.modes[`${t.domain}:${m}`]||0)+1;});
+  temporals.forEach(tp=>{v.temporals[`${t.domain}:${tp}`]=(v.temporals[`${t.domain}:${tp}`]||0)+1;});
+  polarities.forEach(p=>{v.polarities[`${t.domain}:${p}`]=(v.polarities[`${t.domain}:${p}`]||0)+1;});
   (t.needs||[]).forEach(n=>{v.needs[n]=(v.needs[n]||0)+1;});
   saveState();render();
 }
@@ -820,9 +828,12 @@ function undoComplete(id){
   const t=state.tasks.find(t=>t.id===id);if(!t)return;
   const v=state.votes;
   v.domains[t.domain]=Math.max(0,(v.domains[t.domain]||0)-1);
-  if(t.mode)     v.modes[`${t.domain}:${t.mode}`]         =Math.max(0,(v.modes[`${t.domain}:${t.mode}`]||0)-1);
-  if(t.temporal) v.temporals[`${t.domain}:${t.temporal}`] =Math.max(0,(v.temporals[`${t.domain}:${t.temporal}`]||0)-1);
-  if(t.polarity) v.polarities[`${t.domain}:${t.polarity}`]=Math.max(0,(v.polarities[`${t.domain}:${t.polarity}`]||0)-1);
+  const modes=t.modes||(t.mode?[t.mode]:[]);
+  const temporals=t.temporals||(t.temporal?[t.temporal]:[]);
+  const polarities=t.polarities||(t.polarity?[t.polarity]:[]);
+  modes.forEach(m=>{v.modes[`${t.domain}:${m}`]=Math.max(0,(v.modes[`${t.domain}:${m}`]||0)-1);});
+  temporals.forEach(tp=>{v.temporals[`${t.domain}:${tp}`]=Math.max(0,(v.temporals[`${t.domain}:${tp}`]||0)-1);});
+  polarities.forEach(p=>{v.polarities[`${t.domain}:${p}`]=Math.max(0,(v.polarities[`${t.domain}:${p}`]||0)-1);});
   (t.needs||[]).forEach(n=>{v.needs[n]=Math.max(0,(v.needs[n]||0)-1);});
   const tc=state.tasks.filter(x=>x.domain===t.domain&&x.placement==='today').length;
   t.placement=tc<MAX_TODAY?'today':'bucket';t.completedAt=null;
@@ -867,9 +878,13 @@ function editTask(id){
   document.getElementById('taskTitleInput').value=t.title;
   clearToggles();
   selectToggleByValue('domain',t.domain);showDomainCaption(t.domain);
-  if(t.mode)    {selectToggleByValue('mode',t.mode);     showCaption('mode',t.mode);}
-  if(t.temporal){selectToggleByValue('temporal',t.temporal);showCaption('temporal',t.temporal);}
-  if(t.polarity){selectToggleByValue('polarity',t.polarity);showCaption('polarity',t.polarity);}
+  selectMultiValues('mode', t.modes||( t.mode?[t.mode]:[]));
+  selectMultiValues('temporal', t.temporals||(t.temporal?[t.temporal]:[]));
+  selectMultiValues('polarity', t.polarities||(t.polarity?[t.polarity]:[]));
+  // show caption for first selected value of each
+  const fm=(t.modes||[t.mode]||[])[0]; if(fm) showCaption('mode',fm);
+  const ft=(t.temporals||[t.temporal]||[])[0]; if(ft) showCaption('temporal',ft);
+  const fp=(t.polarities||[t.polarity]||[])[0]; if(fp) showCaption('polarity',fp);
   selectToggleByValue('placement',t.placement==='done'?'today':t.placement);
   document.getElementById('taskTimeStart').value=t.timeStart||'';
   document.getElementById('taskTimeEnd').value=t.timeEnd||'';
@@ -880,7 +895,7 @@ function editTask(id){
 function saveTask(){
   const title=document.getElementById('taskTitleInput').value.trim();if(!title)return;
   const domain=getToggleValue('domain');
-  const mode=getToggleValue('mode'),temporal=getToggleValue('temporal'),polarity=getToggleValue('polarity');
+  const modes=getMultiValues('mode'),temporals=getMultiValues('temporal'),polarities=getMultiValues('polarity');
   const placement=getToggleValue('placement')||'bucket';
   const needs=Array.from(document.querySelectorAll('.need-btn.selected')).map(b=>b.dataset.value);
   const timeStart=document.getElementById('taskTimeStart').value.trim();
@@ -897,7 +912,7 @@ function saveTask(){
           if(old)old.placement='bucket';
         }
       }
-      Object.assign(t,{title,domain,mode,temporal,polarity,needs,placement,timeStart:timeStart||null,timeEnd:timeEnd||null});
+      Object.assign(t,{title,domain,modes,temporals,polarities,needs,placement,timeStart:timeStart||null,timeEnd:timeEnd||null});
     }
   } else {
     if(placement==='today'){
@@ -907,7 +922,7 @@ function saveTask(){
         if(old)old.placement='bucket';
       }
     }
-    state.tasks.push({id:Date.now().toString(),title,domain,mode,temporal,polarity,needs,placement,timeStart:timeStart||null,timeEnd:timeEnd||null,createdAt:new Date().toISOString()});
+    state.tasks.push({id:Date.now().toString(),title,domain,modes,temporals,polarities,needs,placement,timeStart:timeStart||null,timeEnd:timeEnd||null,createdAt:new Date().toISOString()});
   }
   saveState();closeModal('taskModal');render();
   if(document.getElementById('tab-schedule').style.display!=='none')renderSchedule();
@@ -928,6 +943,21 @@ function showDomainCaption(id){
 }
 
 // ─── TOGGLE HELPERS ──────────────────────────────────────────────────────────
+
+// multi-select: toggle individual button
+function toggleMulti(btn){btn.classList.toggle('selected');}
+
+// get all selected values for a multi-select group
+function getMultiValues(group){
+  return Array.from(document.querySelectorAll(`.toggle-btn[data-group="${group}"].selected`)).map(b=>b.dataset.value);
+}
+
+// pre-select multi buttons from an array of values
+function selectMultiValues(group,values){
+  document.querySelectorAll(`.toggle-btn[data-group="${group}"]`).forEach(b=>{
+    b.classList.toggle('selected',(values||[]).includes(b.dataset.value));
+  });
+}
 
 function selectToggle(btn){
   document.querySelectorAll(`[data-group="${btn.dataset.group}"]`).forEach(b=>b.classList.remove('selected'));
@@ -1019,29 +1049,27 @@ function parseTime(str){
 
 function renderSchedule(){
   const wrap=document.getElementById('scheduleContent');
-  const todayAll=state.tasks.filter(t=>t.placement==='today'||t.placement==='done');
-  const scheduled=todayAll.filter(t=>t.timeStart).sort((a,b)=>(parseTime(a.timeStart)||0)-(parseTime(b.timeStart)||0));
-  const unscheduled=todayAll.filter(t=>!t.timeStart);
+  const todayActive=state.tasks.filter(t=>t.placement==='today');
+  const scheduled=todayActive.filter(t=>t.timeStart).sort((a,b)=>(parseTime(a.timeStart)||0)-(parseTime(b.timeStart)||0));
+  const unscheduled=todayActive.filter(t=>!t.timeStart);
 
   let html='';
 
   if(scheduled.length){
     html+=`<div class="schedule-section-label">Scheduled</div><div class="schedule-list">`;
-    scheduled.forEach(t=>{
-      html+=schedItemHTML(t);
-    });
+    scheduled.forEach(t=>{html+=schedItemHTML(t);});
     html+=`</div>`;
   }
 
   if(unscheduled.length){
     html+=`<div class="schedule-section-label">Unscheduled</div>`;
-    html+=`<div class="sched-unscheduled-note">These tasks have no time slot yet. Assign one via the clock button or edit.</div>`;
+    html+=`<div class="sched-unscheduled-note">These tasks have no time slot yet.</div>`;
     html+=`<div class="schedule-list">`;
     unscheduled.forEach(t=>{html+=schedItemHTML(t);});
     html+=`</div>`;
   }
 
-  if(!todayAll.length){
+  if(!todayActive.length){
     html=`<div style="font-style:italic;color:var(--ink3);font-size:0.85rem;padding:20px 0;">No tasks assigned to today yet.</div>`;
   }
 
@@ -1050,29 +1078,27 @@ function renderSchedule(){
 
 function schedItemHTML(task){
   const domain=DOMAINS.find(d=>d.id===task.domain);
-  const isDone=task.placement==='done';
   const timeStr=task.timeStart?(task.timeStart+(task.timeEnd?' – '+task.timeEnd:'')):'No time set';
+  const modes=task.modes||(task.mode?[task.mode]:[]);
+  const temporals=task.temporals||(task.temporal?[task.temporal]:[]);
+  const polarities=task.polarities||(task.polarity?[task.polarity]:[]);
   const ns=(task.needs||[]).slice(0,3);
   const tagsHTML=[
-    task.mode?`<span class="tag mode-${task.mode.toLowerCase()}">${task.mode}</span>`:'',
-    task.temporal?`<span class="tag temporal-${task.temporal.toLowerCase()}">${task.temporal}</span>`:'',
-    task.polarity?`<span class="tag polarity-${task.polarity.toLowerCase()}">${task.polarity}</span>`:'',
+    ...modes.map(m=>`<span class="tag mode-${m.toLowerCase()}">${m}</span>`),
+    ...temporals.map(t=>`<span class="tag temporal-${t.toLowerCase()}">${t}</span>`),
+    ...polarities.map(p=>`<span class="tag polarity-${p.toLowerCase()}">${p}</span>`),
     ...ns.map(n=>`<span class="tag">${n}</span>`),
     task.needs&&task.needs.length>3?`<span class="tag">+${task.needs.length-3}</span>`:'',
   ].filter(Boolean).join('');
 
-  const doneBtn=isDone
-    ?`<button class="sched-btn sched-undo" title="Undo completion" onclick="undoCompleteAndRefresh('${task.id}')">↩</button>`
-    :`<button class="sched-btn sched-complete" title="Mark complete" onclick="completeAndRefresh('${task.id}')">✓</button>`;
-
-  return`<div class="sched-item${isDone?' done-sched':''}" id="si-${task.id}">
+  return`<div class="sched-item" id="si-${task.id}">
     <div class="sched-stripe" style="background:${domain?domain.color:'var(--ink3)'}"></div>
     <div class="sched-body">
       <div class="sched-time-row">
         <span class="sched-time">${timeStr}</span>
         ${domain?`<span class="sched-domain-chip" style="background:${domain.color}18;color:${domain.color};border-color:${domain.color}33">${domain.label}</span>`:''}
       </div>
-      <div class="sched-title${isDone?' strikethrough':''}">${task.title}</div>
+      <div class="sched-title">${task.title}</div>
       <div class="sched-tags">${tagsHTML}</div>
       <div class="sched-time-edit">
         <input class="sched-time-input" id="si-start-${task.id}" placeholder="Start" value="${task.timeStart||''}">
@@ -1084,7 +1110,7 @@ function schedItemHTML(task){
       </div>
     </div>
     <div class="sched-actions">
-      ${doneBtn}
+      <button class="sched-btn sched-complete" title="Mark complete" onclick="completeAndRefresh('${task.id}')">✓</button>
       <button class="sched-btn sched-edit" title="Edit task" onclick="editTask('${task.id}')">✎</button>
       <button class="sched-btn sched-clock" title="Reschedule" onclick="toggleReschedule('${task.id}')">⏱</button>
     </div>
