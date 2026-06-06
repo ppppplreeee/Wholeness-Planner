@@ -240,6 +240,23 @@
   /* time display on task cards in domain view */
   .task-time-badge{font-family:var(--font-mono);font-size:0.6rem;color:var(--accent2);margin-bottom:4px;letter-spacing:0.04em;}
 
+  /* BREAK SLOTS */
+  .sched-break{background:#F5F0E8;border:1px solid rgba(180,140,96,0.25);border-radius:10px;box-shadow:none;display:flex;overflow:hidden;}
+  .sched-break .sched-stripe{background:var(--gold);}
+  .sched-break .sched-title{font-style:italic;color:var(--ink2);}
+  .sched-break .sched-domain-chip{background:#F5EEE0;color:var(--accent2);border-color:rgba(180,140,96,0.3);}
+  .break-templates{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+  .break-tpl-btn{border:1px solid var(--border);background:var(--bg);border-radius:6px;padding:5px 12px;font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.06em;color:var(--ink3);cursor:pointer;transition:all 0.15s;}
+  .break-tpl-btn:hover{border-color:var(--gold);color:var(--accent);background:#FDF8F0;}
+
+  /* INSIGHTS FILTER */
+  .insights-filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;align-items:center;}
+  .insights-filter-bar .filter-btn{font-size:0.62rem;}
+  .insights-period-label{font-family:var(--font-mono);font-size:0.62rem;color:var(--ink3);letter-spacing:0.06em;margin-right:4px;}
+  .month-nav{display:flex;align-items:center;gap:8px;}
+  .month-nav-btn{background:none;border:1px solid var(--border);border-radius:5px;width:26px;height:26px;cursor:pointer;font-size:0.75rem;color:var(--ink3);transition:all 0.15s;display:flex;align-items:center;justify-content:center;}
+  .month-nav-btn:hover{background:var(--bg2);color:var(--ink);}
+  .month-nav-label{font-family:var(--font-mono);font-size:0.68rem;color:var(--ink2);min-width:110px;text-align:center;}
   .collapsed{display:none!important;}
   @media(max-width:600px){main{padding:16px 14px 60px;}.domains-grid{grid-template-columns:1fr;}.needs-grid{grid-template-columns:1fr;}}
   ::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:2px;}
@@ -292,6 +309,7 @@
   <!-- INSIGHTS -->
   <div id="tab-insights" style="display:none">
     <div class="section-header"><h2>Patterns over time</h2></div>
+    <div class="insights-filter-bar" id="insightsFilterBar"></div>
     <div class="insights-grid" id="insightsGrid"></div>
   </div>
 
@@ -304,7 +322,10 @@
 
   <!-- SCHEDULE -->
   <div id="tab-schedule" style="display:none">
-    <div class="section-header"><h2>Today's schedule</h2></div>
+    <div class="section-header">
+      <h2>Today's schedule</h2>
+      <button class="btn btn-secondary" style="font-size:0.62rem;padding:6px 14px;" onclick="openBreakModal()">+ Break</button>
+    </div>
     <div class="schedule-wrap" id="scheduleContent"></div>
   </div>
 </main>
@@ -369,6 +390,48 @@
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeModal('taskModal')">Cancel</button>
       <button class="btn btn-primary" onclick="saveTask()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- BREAK MODAL -->
+<div class="modal-overlay" id="breakModal">
+  <div class="modal">
+    <h2 id="breakModalTitle">Add a break</h2>
+    <div class="field">
+      <label>Templates</label>
+      <div class="break-templates">
+        <button class="break-tpl-btn" onclick="applyBreakTemplate('Lunch break','Rest & Recovery','Satiety','Joy, Pleasure, Delight')">Lunch</button>
+        <button class="break-tpl-btn" onclick="applyBreakTemplate('Morning rest','Rest & Recovery')">Morning rest</button>
+        <button class="break-tpl-btn" onclick="applyBreakTemplate('Evening wind-down','Rest & Recovery','Solitude')">Evening wind-down</button>
+        <button class="break-tpl-btn" onclick="applyBreakTemplate('Solo walk','Body & Sensory Aliveness','Solitude','Joy, Pleasure, Delight')">Solo walk</button>
+        <button class="break-tpl-btn" onclick="applyBreakTemplate('Walk with someone','Connection','Joy, Pleasure, Delight','Body & Sensory Aliveness')">Walk with someone</button>
+        <button class="break-tpl-btn" onclick="applyBreakTemplate('Coffee / drink','Joy, Pleasure, Delight','Satiety','Rest & Recovery')">Coffee / drink</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Name</label>
+      <input type="text" id="breakTitleInput" placeholder="What is this break?">
+    </div>
+    <div class="field">
+      <label>Time slot — optional</label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <input type="text" id="breakTimeStart" placeholder="Start" style="width:90px;">
+        <span style="font-family:var(--font-mono);font-size:0.75rem;color:var(--ink3);">–</span>
+        <input type="text" id="breakTimeEnd" placeholder="End" style="width:90px;">
+      </div>
+    </div>
+    <div class="field">
+      <label>Needs — Rest & Recovery pre-selected</label>
+      <div class="needs-grid" id="breakNeedsGrid"></div>
+    </div>
+    <div class="field">
+      <label>Note — optional</label>
+      <input type="text" id="breakNote" placeholder="A few words if you want to remember something">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('breakModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveBreak()">Save break</button>
     </div>
   </div>
 </div>
@@ -525,20 +588,25 @@ const MAX_TODAY = 2;
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
 
-function defaultState(){return{tasks:[],votes:{domains:{},modes:{},temporals:{},polarities:{},needs:{}}};}
+function defaultState(){return{tasks:[],breaks:[],votes:{domains:{},modes:{},temporals:{},polarities:{},needs:{}}};}
 let state=loadState();
-function loadState(){try{const r=localStorage.getItem('tending_state');if(r)return JSON.parse(r);}catch(e){}return defaultState();}
+function loadState(){try{const r=localStorage.getItem('tending_state');if(r){const s=JSON.parse(r);if(!s.breaks)s.breaks=[];return s;}}catch(e){}return defaultState();}
 function saveState(){localStorage.setItem('tending_state',JSON.stringify(state));}
 
 let editingTaskId=null;
+let editingBreakId=null;
 let currentPrompt=null;
 let historyFilter='all';
+let insightsMode='all'; // 'all' | 'month'
+let insightsMonth=null; // {year, month} when mode=month
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('headerDate').textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  buildDomainToggles();buildNeedsGrid();buildHistoryFilters();render();
+  buildDomainToggles();buildNeedsGrid();buildBreakNeedsGrid();buildHistoryFilters();
+  insightsMonth=currentYearMonth();
+  render();
 });
 
 function render(){renderDomains();renderAlerts();}
@@ -670,16 +738,36 @@ function renderAlerts(){
 }
 
 function computeAlerts(){
-  const alerts=[],v=state.votes;
+  const alerts=[];
+  const cutoff=new Date(Date.now()-30*24*60*60*1000);
+  const recent=state.tasks.filter(t=>t.placement==='done'&&t.completedAt&&new Date(t.completedAt)>=cutoff);
+
+  // Per-domain axes
   DOMAINS.forEach(d=>{
-    const ms=['Receptive','Expressive'].map(m=>({label:m,count:v.modes[`${d.id}:${m}`]||0})).sort((a,b)=>a.count-b.count);
-    if(ms[0].count===0||ms[0].count<ms[1].count*0.5) alerts.push(`${d.label}: ${ms[0].label}`);
-    const ts=['Past','Present','Future'].map(t=>({label:t,count:v.temporals[`${d.id}:${t}`]||0})).sort((a,b)=>a.count-b.count);
-    if(ts[0].count===0||ts[0].count<ts[2].count*0.4) alerts.push(`${d.label}: ${ts[0].label}`);
-    const ps=['Maintenance','Aliveness'].map(p=>({label:p,count:v.polarities[`${d.id}:${p}`]||0})).sort((a,b)=>a.count-b.count);
-    if(ps[0].count===0||ps[0].count<ps[1].count*0.5) alerts.push(`${d.label}: ${ps[0].label}`);
+    const dt=recent.filter(t=>t.domain===d.id);
+    const modeCount={Receptive:0,Expressive:0};
+    dt.forEach(t=>(t.modes||(t.mode?[t.mode]:[])).forEach(m=>{modeCount[m]=(modeCount[m]||0)+1;}));
+    const ms=Object.entries(modeCount).sort((a,b)=>a[1]-b[1]);
+    if(ms[0][1]===0||ms[0][1]<ms[1][1]*0.5) alerts.push(`${d.label}: ${ms[0][0]}`);
+
+    const tempCount={Past:0,Present:0,Future:0};
+    dt.forEach(t=>(t.temporals||(t.temporal?[t.temporal]:[])).forEach(tp=>{tempCount[tp]=(tempCount[tp]||0)+1;}));
+    const ts=Object.entries(tempCount).sort((a,b)=>a[1]-b[1]);
+    if(ts[0][1]===0||ts[0][1]<ts[2][1]*0.4) alerts.push(`${d.label}: ${ts[0][0]}`);
+
+    const polCount={Maintenance:0,Aliveness:0};
+    dt.forEach(t=>(t.polarities||(t.polarity?[t.polarity]:[])).forEach(p=>{polCount[p]=(polCount[p]||0)+1;}));
+    const ps=Object.entries(polCount).sort((a,b)=>a[1]-b[1]);
+    if(ps[0][1]===0||ps[0][1]<ps[1][1]*0.5) alerts.push(`${d.label}: ${ps[0][0]}`);
   });
-  NEEDS.map(n=>({label:n,count:v.needs[n]||0})).sort((a,b)=>a.count-b.count).slice(0,2).forEach(n=>alerts.push(`Need: ${n.label}`));
+
+  // Bottom 2 needs globally (tasks + recent breaks)
+  const recentBreaks=state.breaks.filter(b=>b.placement==='done'&&b.completedAt&&new Date(b.completedAt)>=cutoff);
+  const needsCounts={};
+  [...recent,...recentBreaks].forEach(item=>(item.needs||[]).forEach(n=>{needsCounts[n]=(needsCounts[n]||0)+1;}));
+  NEEDS.map(n=>({label:n,count:needsCounts[n]||0})).sort((a,b)=>a.count-b.count).slice(0,2)
+    .forEach(n=>alerts.push(`Need: ${n.label}`));
+
   return[...new Set(alerts)];
 }
 
@@ -723,13 +811,108 @@ function usePrompt(){
 
 // ─── INSIGHTS ────────────────────────────────────────────────────────────────
 
+function currentYearMonth(){
+  const n=new Date();return{year:n.getFullYear(),month:n.getMonth()};
+}
+
+function availableMonths(){
+  const months=new Set();
+  [...state.tasks,...state.breaks].forEach(item=>{
+    const d=item.completedAt;
+    if(d){const dt=new Date(d);months.add(`${dt.getFullYear()}-${dt.getMonth()}`);}
+  });
+  return Array.from(months).sort().map(k=>{const[y,m]=k.split('-');return{year:parseInt(y),month:parseInt(m)};});
+}
+
+function monthLabel(ym){
+  return new Date(ym.year,ym.month,1).toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+}
+
+function buildInsightsFilter(){
+  const bar=document.getElementById('insightsFilterBar');
+  bar.innerHTML='';
+
+  // All time button
+  const allBtn=document.createElement('button');
+  allBtn.className='filter-btn'+(insightsMode==='all'?' active':'');
+  allBtn.textContent='All time';
+  allBtn.onclick=()=>{insightsMode='all';buildInsightsFilter();renderInsights();};
+  bar.appendChild(allBtn);
+
+  // Month button
+  const mBtn=document.createElement('button');
+  mBtn.className='filter-btn'+(insightsMode==='month'?' active':'');
+  mBtn.textContent='By month';
+  mBtn.onclick=()=>{insightsMode='month';buildInsightsFilter();renderInsights();};
+  bar.appendChild(mBtn);
+
+  if(insightsMode==='month'){
+    const months=availableMonths();
+    const nav=document.createElement('div');nav.className='month-nav';
+
+    const prevBtn=document.createElement('button');prevBtn.className='month-nav-btn';prevBtn.textContent='‹';
+    prevBtn.onclick=()=>{
+      const idx=months.findIndex(m=>m.year===insightsMonth.year&&m.month===insightsMonth.month);
+      if(idx>0){insightsMonth=months[idx-1];buildInsightsFilter();renderInsights();}
+    };
+
+    const label=document.createElement('div');label.className='month-nav-label';
+    label.textContent=monthLabel(insightsMonth);
+
+    const nextBtn=document.createElement('button');nextBtn.className='month-nav-btn';nextBtn.textContent='›';
+    nextBtn.onclick=()=>{
+      const idx=months.findIndex(m=>m.year===insightsMonth.year&&m.month===insightsMonth.month);
+      if(idx<months.length-1){insightsMonth=months[idx+1];buildInsightsFilter();renderInsights();}
+    };
+
+    nav.append(prevBtn,label,nextBtn);
+    bar.appendChild(nav);
+  }
+}
+
+function getInsightsItems(){
+  // returns completed tasks + completed breaks filtered by current mode/month
+  const allItems=[
+    ...state.tasks.filter(t=>t.placement==='done'&&t.completedAt),
+    ...state.breaks.filter(b=>b.placement==='done'&&b.completedAt),
+  ];
+  if(insightsMode==='all') return allItems;
+  return allItems.filter(item=>{
+    const d=new Date(item.completedAt);
+    return d.getFullYear()===insightsMonth.year&&d.getMonth()===insightsMonth.month;
+  });
+}
+
 function renderInsights(){
-  const grid=document.getElementById('insightsGrid');grid.innerHTML='';const v=state.votes;
-  addCard(grid,'By Domain',DOMAINS.map(d=>({label:d.label,count:v.domains[d.id]||0,color:d.color})));
-  addCard(grid,'Mode',['Receptive','Expressive'].map(m=>({label:m,count:DOMAINS.reduce((s,d)=>s+(v.modes[`${d.id}:${m}`]||0),0)})));
-  addCard(grid,'Temporal',['Past','Present','Future'].map(t=>({label:t,count:DOMAINS.reduce((s,d)=>s+(v.temporals[`${d.id}:${t}`]||0),0)})));
-  addCard(grid,'Maintenance vs Aliveness',['Maintenance','Aliveness'].map(p=>({label:p,count:DOMAINS.reduce((s,d)=>s+(v.polarities[`${d.id}:${p}`]||0),0)})));
-  addCard(grid,'Needs',NEEDS.map(n=>({label:n,count:v.needs[n]||0})).sort((a,b)=>b.count-a.count));
+  const grid=document.getElementById('insightsGrid');grid.innerHTML='';
+  const items=getInsightsItems();
+  const tasks=items.filter(i=>!i.isBreak);
+  const allItems=items; // includes breaks for needs
+
+  // By Domain (tasks only, breaks have no domain)
+  const domainCounts={};
+  tasks.forEach(t=>{domainCounts[t.domain]=(domainCounts[t.domain]||0)+1;});
+  addCard(grid,'By Domain',DOMAINS.map(d=>({label:d.label,count:domainCounts[d.id]||0,color:d.color})));
+
+  // Mode (tasks only)
+  const modeCounts={Receptive:0,Expressive:0};
+  tasks.forEach(t=>{(t.modes||(t.mode?[t.mode]:[])).forEach(m=>{modeCounts[m]=(modeCounts[m]||0)+1;});});
+  addCard(grid,'Mode',[{label:'Receptive',count:modeCounts.Receptive},{label:'Expressive',count:modeCounts.Expressive}]);
+
+  // Temporal (tasks only)
+  const tempCounts={Past:0,Present:0,Future:0};
+  tasks.forEach(t=>{(t.temporals||(t.temporal?[t.temporal]:[])).forEach(tp=>{tempCounts[tp]=(tempCounts[tp]||0)+1;});});
+  addCard(grid,'Temporal',[{label:'Past',count:tempCounts.Past},{label:'Present',count:tempCounts.Present},{label:'Future',count:tempCounts.Future}]);
+
+  // Polarity (tasks only)
+  const polCounts={Maintenance:0,Aliveness:0};
+  tasks.forEach(t=>{(t.polarities||(t.polarity?[t.polarity]:[])).forEach(p=>{polCounts[p]=(polCounts[p]||0)+1;});});
+  addCard(grid,'Maintenance vs Aliveness',[{label:'Maintenance',count:polCounts.Maintenance},{label:'Aliveness',count:polCounts.Aliveness}]);
+
+  // Needs (tasks + breaks)
+  const needsCounts={};
+  allItems.forEach(item=>{(item.needs||[]).forEach(n=>{needsCounts[n]=(needsCounts[n]||0)+1;});});
+  addCard(grid,'Needs',NEEDS.map(n=>({label:n,count:needsCounts[n]||0})).sort((a,b)=>b.count-a.count));
 }
 
 function addCard(grid,title,data){
@@ -763,12 +946,12 @@ function buildHistoryFilters(){
 
 function renderHistory(){
   const content=document.getElementById('historyContent');
-  const done=state.tasks.filter(t=>t.placement==='done'&&(historyFilter==='all'||t.domain===historyFilter))
-    .sort((a,b)=>new Date(b.completedAt)-new Date(a.completedAt));
+  const doneTasks=state.tasks.filter(t=>t.placement==='done'&&(historyFilter==='all'||t.domain===historyFilter));
+  const doneBreaks=historyFilter==='all'?state.breaks.filter(b=>b.placement==='done'):[];
+  const done=[...doneTasks,...doneBreaks].sort((a,b)=>new Date(b.completedAt)-new Date(a.completedAt));
 
   if(!done.length){content.innerHTML=`<div class="history-empty">No completed tasks yet${historyFilter!=='all'?' in this domain':''}.</div>`;return;}
 
-  // Group by date
   const groups={};
   done.forEach(t=>{
     const d=new Date(t.completedAt);
@@ -777,27 +960,29 @@ function renderHistory(){
     groups[key].push(t);
   });
 
-  content.innerHTML=Object.entries(groups).map(([date,tasks])=>`
+  content.innerHTML=Object.entries(groups).map(([date,items])=>`
     <div class="history-group">
       <div class="history-group-label">${date}</div>
       <div class="history-list">
-        ${tasks.map(t=>{
-          const domain=DOMAINS.find(d=>d.id===t.domain);
+        ${items.map(t=>{
+          const isBreak=t.isBreak;
+          const domain=isBreak?null:DOMAINS.find(d=>d.id===t.domain);
           const time=new Date(t.completedAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
           const ns=(t.needs||[]).slice(0,4);
           return`<div class="history-item">
             <div class="history-item-header">
               <div class="history-item-title">${t.title}</div>
               <div class="history-item-meta">
-                <div class="history-domain-dot dot-${t.domain}"></div>
+                ${isBreak?`<span style="font-family:var(--font-mono);font-size:0.58rem;color:var(--accent2);">Break</span>`
+                  :`<div class="history-domain-dot dot-${t.domain}"></div>`}
                 <div class="history-item-time">${time}</div>
               </div>
             </div>
             <div class="history-item-tags">
-              ${domain?`<span class="tag" style="background:${domain.color}18;color:${domain.color};border-color:${domain.color}33">${domain.label}</span>`:''}
-              ${(t.modes||(t.mode?[t.mode]:[])).map(m=>`<span class="tag mode-${m.toLowerCase()}">${m}</span>`).join('')}
-              ${(t.temporals||(t.temporal?[t.temporal]:[])).map(tp=>`<span class="tag temporal-${tp.toLowerCase()}">${tp}</span>`).join('')}
-              ${(t.polarities||(t.polarity?[t.polarity]:[])).map(p=>`<span class="tag polarity-${p.toLowerCase()}">${p}</span>`).join('')}
+              ${!isBreak&&domain?`<span class="tag" style="background:${domain.color}18;color:${domain.color};border-color:${domain.color}33">${domain.label}</span>`:''}
+              ${!isBreak?(t.modes||(t.mode?[t.mode]:[])).map(m=>`<span class="tag mode-${m.toLowerCase()}">${m}</span>`).join(''):''}
+              ${!isBreak?(t.temporals||(t.temporal?[t.temporal]:[])).map(tp=>`<span class="tag temporal-${tp.toLowerCase()}">${tp}</span>`).join(''):''}
+              ${!isBreak?(t.polarities||(t.polarity?[t.polarity]:[])).map(p=>`<span class="tag polarity-${p.toLowerCase()}">${p}</span>`).join(''):''}
               ${ns.map(n=>`<span class="tag">${n}</span>`).join('')}
               ${t.needs&&t.needs.length>4?`<span class="tag">+${t.needs.length-4}</span>`:''}
             </div>
@@ -1008,7 +1193,7 @@ function showTab(name,btn){
   ['today','insights','history','schedule'].forEach(t=>document.getElementById('tab-'+t).style.display=t===name?'':'none');
   document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  if(name==='insights')renderInsights();
+  if(name==='insights'){buildInsightsFilter();renderInsights();}
   if(name==='history')renderHistory();
   if(name==='schedule')renderSchedule();
 }
@@ -1034,6 +1219,7 @@ function restoreData(){
   const raw=document.getElementById('restoreText').value.trim();
   try{
     const p=JSON.parse(raw);if(!p.tasks||!p.votes)throw new Error();
+    if(!p.breaks)p.breaks=[];
     state=p;saveState();closeModal('restoreModal');render();
   }catch(e){alert('Invalid backup data. Please check the JSON and try again.');}
 }
@@ -1049,28 +1235,35 @@ function parseTime(str){
 
 function renderSchedule(){
   const wrap=document.getElementById('scheduleContent');
-  const todayActive=state.tasks.filter(t=>t.placement==='today');
-  const scheduled=todayActive.filter(t=>t.timeStart).sort((a,b)=>(parseTime(a.timeStart)||0)-(parseTime(b.timeStart)||0));
-  const unscheduled=todayActive.filter(t=>!t.timeStart);
+  const todayTasks=state.tasks.filter(t=>t.placement==='today');
+  const todayBreaks=state.breaks.filter(b=>isToday(b.createdAt)||b.placement==='today');
+
+  // Merge and sort all timed items together
+  const allItems=[
+    ...todayTasks.map(t=>({...t,_type:'task'})),
+    ...todayBreaks.map(b=>({...b,_type:'break'})),
+  ];
+  const scheduled=allItems.filter(i=>i.timeStart).sort((a,b)=>(parseTime(a.timeStart)||0)-(parseTime(b.timeStart)||0));
+  const unscheduled=allItems.filter(i=>!i.timeStart);
 
   let html='';
 
   if(scheduled.length){
     html+=`<div class="schedule-section-label">Scheduled</div><div class="schedule-list">`;
-    scheduled.forEach(t=>{html+=schedItemHTML(t);});
+    scheduled.forEach(i=>{html+=i._type==='break'?breakItemHTML(i):schedItemHTML(i);});
     html+=`</div>`;
   }
 
   if(unscheduled.length){
     html+=`<div class="schedule-section-label">Unscheduled</div>`;
-    html+=`<div class="sched-unscheduled-note">These tasks have no time slot yet.</div>`;
+    html+=`<div class="sched-unscheduled-note">No time slot yet — assign one via ⏱ or Edit.</div>`;
     html+=`<div class="schedule-list">`;
-    unscheduled.forEach(t=>{html+=schedItemHTML(t);});
+    unscheduled.forEach(i=>{html+=i._type==='break'?breakItemHTML(i):schedItemHTML(i);});
     html+=`</div>`;
   }
 
-  if(!todayActive.length){
-    html=`<div style="font-style:italic;color:var(--ink3);font-size:0.85rem;padding:20px 0;">No tasks assigned to today yet.</div>`;
+  if(!allItems.length){
+    html=`<div style="font-style:italic;color:var(--ink3);font-size:0.85rem;padding:20px 0;">No tasks or breaks for today yet.</div>`;
   }
 
   wrap.innerHTML=html;
@@ -1137,6 +1330,122 @@ function clearReschedule(id){
 
 function completeAndRefresh(id){completeTask(id);renderSchedule();}
 function undoCompleteAndRefresh(id){undoComplete(id);renderSchedule();}
+
+// ─── BREAKS ──────────────────────────────────────────────────────────────────
+
+const BREAK_TEMPLATES=[
+  {label:'Lunch',title:'Lunch break',needs:['Rest & Recovery','Satiety','Joy, Pleasure, Delight']},
+  {label:'Morning rest',title:'Morning rest',needs:['Rest & Recovery']},
+  {label:'Evening wind-down',title:'Evening wind-down',needs:['Rest & Recovery','Solitude']},
+  {label:'Solo walk',title:'Solo walk',needs:['Body & Sensory Aliveness','Solitude','Joy, Pleasure, Delight']},
+  {label:'Walk with someone',title:'Walk with someone',needs:['Connection','Joy, Pleasure, Delight','Body & Sensory Aliveness']},
+  {label:'Coffee / drink',title:'Coffee / drink',needs:['Joy, Pleasure, Delight','Satiety','Rest & Recovery']},
+];
+
+function buildBreakNeedsGrid(){
+  const grid=document.getElementById('breakNeedsGrid');if(!grid)return;
+  NEEDS.forEach(n=>{
+    const btn=document.createElement('button');
+    btn.className='need-btn'+(n==='Rest & Recovery'?' selected':'');
+    btn.dataset.value=n;btn.textContent=n;
+    btn.onclick=()=>btn.classList.toggle('selected');
+    grid.appendChild(btn);
+  });
+}
+
+function openBreakModal(id){
+  editingBreakId=id||null;
+  document.getElementById('breakModalTitle').textContent=id?'Edit break':'Add a break';
+  if(id){
+    const b=state.breaks.find(x=>x.id===id);if(!b)return;
+    document.getElementById('breakTitleInput').value=b.title||'';
+    document.getElementById('breakTimeStart').value=b.timeStart||'';
+    document.getElementById('breakTimeEnd').value=b.timeEnd||'';
+    document.getElementById('breakNote').value=b.note||'';
+    document.querySelectorAll('#breakNeedsGrid .need-btn').forEach(btn=>{
+      btn.classList.toggle('selected',(b.needs||[]).includes(btn.dataset.value));
+    });
+  } else {
+    document.getElementById('breakTitleInput').value='';
+    document.getElementById('breakTimeStart').value='';
+    document.getElementById('breakTimeEnd').value='';
+    document.getElementById('breakNote').value='';
+    document.querySelectorAll('#breakNeedsGrid .need-btn').forEach(btn=>{
+      btn.classList.toggle('selected',btn.dataset.value==='Rest & Recovery');
+    });
+  }
+  openModal('breakModal');
+}
+
+function applyBreakTemplate(title,...needs){
+  document.getElementById('breakTitleInput').value=title;
+  document.querySelectorAll('#breakNeedsGrid .need-btn').forEach(btn=>{
+    btn.classList.toggle('selected',needs.includes(btn.dataset.value)||btn.dataset.value==='Rest & Recovery');
+  });
+}
+
+function saveBreak(){
+  const title=document.getElementById('breakTitleInput').value.trim();
+  if(!title)return;
+  const timeStart=document.getElementById('breakTimeStart').value.trim();
+  const timeEnd=document.getElementById('breakTimeEnd').value.trim();
+  const note=document.getElementById('breakNote').value.trim();
+  const needs=Array.from(document.querySelectorAll('#breakNeedsGrid .need-btn.selected')).map(b=>b.dataset.value);
+
+  if(editingBreakId){
+    const b=state.breaks.find(x=>x.id===editingBreakId);
+    if(b) Object.assign(b,{title,timeStart:timeStart||null,timeEnd:timeEnd||null,needs,note:note||null});
+  } else {
+    state.breaks.push({
+      id:'b'+Date.now(),title,timeStart:timeStart||null,timeEnd:timeEnd||null,
+      needs,note:note||null,placement:'today',isBreak:true,
+      createdAt:new Date().toISOString(),completedAt:null
+    });
+  }
+  saveState();closeModal('breakModal');renderSchedule();
+}
+
+function completeBreak(id){
+  const b=state.breaks.find(x=>x.id===id);if(!b)return;
+  b.placement='done';b.completedAt=new Date().toISOString();
+  saveState();renderSchedule();
+}
+
+function undoBreak(id){
+  const b=state.breaks.find(x=>x.id===id);if(!b)return;
+  b.placement='today';b.completedAt=null;
+  saveState();renderSchedule();
+}
+
+function deleteBreak(id){
+  state.breaks=state.breaks.filter(x=>x.id!==id);
+  saveState();renderSchedule();
+}
+
+function breakItemHTML(b){
+  const timeStr=b.timeStart?(b.timeStart+(b.timeEnd?' – '+b.timeEnd:'')):'No time set';
+  const ns=(b.needs||[]).slice(0,4);
+  const done=b.placement==='done';
+  return`<div class="sched-item sched-break${done?' done-sched':''}" id="si-${b.id}">
+    <div class="sched-stripe" style="background:var(--gold)"></div>
+    <div class="sched-body">
+      <div class="sched-time-row">
+        <span class="sched-time">${timeStr}</span>
+        <span class="sched-domain-chip">Break</span>
+      </div>
+      <div class="sched-title${done?' strikethrough':''}">${b.title}</div>
+      ${b.note?`<div style="font-size:0.78rem;color:var(--ink3);font-style:italic;margin-top:3px;">${b.note}</div>`:''}
+      <div class="sched-tags" style="margin-top:6px;">${ns.map(n=>`<span class="tag">${n}</span>`).join('')}${b.needs&&b.needs.length>4?`<span class="tag">+${b.needs.length-4}</span>`:''}</div>
+    </div>
+    <div class="sched-actions">
+      ${done
+        ?`<button class="sched-btn sched-undo" title="Undo" onclick="undoBreak('${b.id}')">↩</button>`
+        :`<button class="sched-btn sched-complete" title="Done" onclick="completeBreak('${b.id}')">✓</button>`}
+      <button class="sched-btn sched-edit" title="Edit" onclick="openBreakModal('${b.id}')">✎</button>
+      <button class="sched-btn sched-clock" title="Delete" onclick="deleteBreak('${b.id}')" style="font-size:0.6rem;color:var(--low);">✕</button>
+    </div>
+  </div>`;
+}
 
 function isToday(d){if(!d)return false;return new Date(d).toDateString()===new Date().toDateString();}
 </script>
